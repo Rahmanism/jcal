@@ -7,3 +7,16 @@ libc implementations. Jalali calendar provides an API similar to that of libc's 
 
 Jalali calendar package consists of a library namely libjalali and two simple and easy to use terminal tools, jcal
 and jdate with functionality similar to UNIX cal and date.
+
+### Install
+
+Just run these:  
+
+```bash
+cd ./source
+./autogen.sh
+
+# 
+make
+sudo make install
+```

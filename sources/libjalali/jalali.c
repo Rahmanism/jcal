@@ -41,7 +41,28 @@
         if (lo < 0) { lo += (factor); hi--; }\
     }
 
+/*
+ * Checks if an int number is in an array of integers.
+ */
+
+int is_in_array(const int arr[], int size, int target)
+{
+    for (int i = 0; i < size; i++)
+    {
+        if (arr[i] == target)
+            return 1; // Found
+    }
+
+    return 0; // Not found
+}
+
 const int cycle_patterns[] = { J_PT0, J_PT1, J_PT2, J_PT3, INT_MAX };
+
+/*
+ * If the remainder of year divided by 33 is in this array, it's a leap year.
+ */
+const int leap_cycle_patterns[] = {1, 5, 9, 13, 17, 22, 26, 30};
+
 const int leaps[] = { J_L0, J_L1, J_L2, J_L3, INT_MAX };
 
 const int jalali_month_len[] = { 31, 31, 31, 31, 31, 31, 30, 30, 30, 30,
@@ -52,66 +73,19 @@ const int accumulated_jalali_month_len[] = { 0, 31, 62, 93, 124, 155, 186,
 extern char* tzname[2];
 
 /*
- * Jalali leap year indication function. The algorithm used here
- * is loosely based on the famous recurring 2820 years length period. This
- * period is then divided into 88 cycles, each following a 29, 33, 33, 33
- * years length pattern with the exception for the last being 37 years long.
- * In every of these 29, 33 or 37 years long periods starting with year 0,
- * leap years are multiples of four except for year 0 in each period.
- * The current 2820 year period started in the year AP 475 (AD 1096).
+ * Jalali leap year indication function.
+ * Divide the jalali year by 33, if th remainder is in
+ * 1، 5، 9، 13، 17، 22، 26, 30, it's a leap year.
+ * It works till year 1501!
  */
 
 int jalali_is_jleap(int year)
 {
     int pr = year;
 
-    /* Shifting ``year'' with 2820 year period epoch. */
-    pr -= JALALI_LEAP_BASE;
+    pr %= 33;
 
-    pr %= JALALI_LEAP_PERIOD;
-
-    /*
-     * According to C99 standards, modulo operator's result has the same sign
-     * as dividend. Since what we require to process has to be in range
-     * 0-2819, we have to shift the remainder to be positive if dividend is
-     * negative.
-     */
-    if (pr < 0) {
-        pr += JALALI_LEAP_PERIOD;
-    }
-
-    /*
-     * Every cycle consists of one 29 year period and three identical 33 year
-     * periods forming a 128 years length cycle. An exception applies to the
-     * last cycle being 132 years instead and it's last 33 years long partition
-     * will be extended for an extra 4 years thus becoming 37 years long.
-     * JALALI_LAST_CYCLE_START literally marks the beginning of this last
-     * cycle.
-     */
-
-    pr = (pr > JALALI_LAST_CYCLE_START) ?
-        (pr - JALALI_LAST_CYCLE_START) : pr % JALALI_NORMAL_CYCLE_LENGTH;
-
-    /*
-     * Classifying year in a cycle. Assigning to one of the four partitions.
-     */
-    int i;
-    for (i=0; i<J_LI; i++)
-    {
-        if ((pr >= cycle_patterns[i]) && (pr < cycle_patterns[i+1]))
-        {
-            pr -= cycle_patterns[i];
-            /* Handling year-0 exception */
-            if (!pr) /* pr is zero */
-                return 0;
-            /*
-             * If year is a multiple of four then it's leap,
-             * ordinary otherwise.
-             */
-            else
-                return !(pr % J_LI);
-        }
-    }
+    return (is_in_array(leap_cycle_patterns, J_LEAP_CYCLE_PATTERNS_SIZE, pr));
 
     /*
      * Our code flow better not reach this fail-safe
